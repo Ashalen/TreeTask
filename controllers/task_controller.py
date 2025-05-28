@@ -148,11 +148,6 @@ def api_tasks():
         Task.create(current_user.id, title, description)
         return jsonify({'message': 'Task created'}), 201
 
-@task_bp.route('/settings', methods=['GET'])
-@login_required
-def settings():
-    return render_template('settings.html')
-
 @task_bp.route('/delete_account', methods=['POST'])
 @login_required
 def delete_account():

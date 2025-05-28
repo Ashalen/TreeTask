@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Task - TreeTask</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/treetask.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen" id="bodyRoot">
+    <nav class="bg-white shadow p-4 flex justify-between items-center rounded-b-2xl">
+        <span class="font-bold text-2xl treetask-green-text flex items-center gap-2">
+            <img src="{{ url_for('static', filename='logo/task_tree.gif') }}" alt="TreeTask Logo" class="h-10 w-auto object-contain rounded-lg" style="image-rendering: auto;" />
+            TreeTask
+        </span>
+        <div>
+            <a href="{{ url_for('task.dashboard') }}" class="treetask-green treetask-green-hover text-white px-4 py-2 rounded-2xl font-semibold shadow">Back to Dashboard</a>
+        </div>
+    </nav>
+    <main class="max-w-2xl mx-auto mt-8">
+        <div class="bg-white rounded-3xl shadow p-8">
+            <h2 class="text-xl font-bold mb-6 treetask-green-text">Edit Task</h2>
+            <form method="POST" novalidate>
+                {{ form.hidden_tag() }}
+                <div class="mb-6">
+                    {{ form.title.label(class_="block text-gray-700 font-semibold mb-1") }}
+                    {{ form.title(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green", value=task.title|e) }}
+                    {% for error in form.title.errors %}
+                      <span class="text-red-500 text-sm">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mb-6">
+                    {{ form.description.label(class_="block text-gray-700 font-semibold mb-1") }}
+                    {{ form.description(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green", value=task.description|e) }}
+                    {% for error in form.description.errors %}
+                      <span class="text-red-500 text-sm">{{ error }}</span>
+                    {% endfor %}
+                </div>
+                <div class="mb-6 flex gap-4">
+                    <div class="flex-1">
+                        <label class="block text-gray-700 font-semibold mb-1" for="edit_due_date_picker">Date</label>
+                        <button type="button" id="edit_date_picker_btn" onclick="showDatePickerAtButton('edit_due_date_picker', 'edit_date_picker_btn')" class="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green bg-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                            <span class="text-gray-500">Pick a date</span>
+                        </button>
+                        {{ form.due_date(class_="hidden", id="edit_due_date_picker", type="date") }}
+                        {% for error in form.due_date.errors %}
+                          <span class="text-red-500 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="flex-1">
+                        <label class="block text-gray-700 font-semibold mb-1" for="edit_due_time_picker">Time</label>
+                        <button type="button" id="edit_time_picker_btn" onclick="showDatePickerAtButton('edit_due_time_picker', 'edit_time_picker_btn')" class="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green bg-white flex items-center gap-2">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                            <span class="text-gray-500">Pick a time</span>
+                        </button>
+                        {{ form.due_time(class_="hidden", id="edit_due_time_picker", type="time") }}
+                        {% for error in form.due_time.errors %}
+                          <span class="text-red-500 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                </div>
+                <button type="submit" class="w-full treetask-green treetask-green-hover text-white font-bold py-3 px-4 rounded-2xl shadow transition">Update Task</button>
+            </form>
+        </div>
+    </main>
+    <script>
+// --- Date/Time Picker Logic for Edit Form ---
+function showDatePickerAtButton(inputId, btnId) {
+    const input = document.getElementById(inputId);
+    const btn = document.getElementById(btnId);
+    if (!input || !btn) return;
+    const rect = btn.getBoundingClientRect();
+    input.style.position = 'absolute';
+    input.style.left = rect.left + 'px';
+    input.style.top = (rect.bottom + window.scrollY) + 'px';
+    input.style.zIndex = 9999;
+    input.classList.remove('hidden');
+    input.focus();
+    input.showPicker && input.showPicker();
+    input.onblur = function() {
+        setTimeout(() => {
+            input.classList.add('hidden');
+            input.style.position = '';
+            input.style.left = '';
+            input.style.top = '';
+            input.style.zIndex = '';
+        }, 150);
+    };
+    if (input.type === 'time') {
+        input.onchange = null;
+        input.addEventListener('change', editTimePickerChangeHandler);
+    } else {
+        input.onchange = function() {
+            let value = input.value;
+            let span = btn.querySelector('span');
+            if (input.type === 'date' && value) {
+                const d = new Date(value);
+                span.textContent = d.toLocaleDateString();
+            }
+            input.classList.add('hidden');
+            input.style.position = '';
+            input.style.left = '';
+            input.style.top = '';
+            input.style.zIndex = '';
+        };
+    }
+    input.onkeydown = function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            input.blur();
+        }
+    };
+}
+function editTimePickerChangeHandler(e) {
+    const input = e.target;
+    const btn = document.getElementById('edit_time_picker_btn');
+    let value = input.value;
+    let span = btn.querySelector('span');
+    if (value) {
+        span.textContent = value;
+        input.classList.add('hidden');
+        input.style.position = '';
+        input.style.left = '';
+        input.style.top = '';
+        input.style.zIndex = '';
+    }
+}
+// --- Set initial button text for date/time if editing existing task ---
+document.addEventListener('DOMContentLoaded', function() {
+    const dateInput = document.getElementById('edit_due_date_picker');
+    const dateBtn = document.getElementById('edit_date_picker_btn');
+    if (dateInput && dateBtn && dateInput.value) {
+        const d = new Date(dateInput.value);
+        dateBtn.querySelector('span').textContent = d.toLocaleDateString();
+    }
+    const timeInput = document.getElementById('edit_due_time_picker');
+    const timeBtn = document.getElementById('edit_time_picker_btn');
+    if (timeInput && timeBtn && timeInput.value) {
+        timeBtn.querySelector('span').textContent = timeInput.value;
+    }
+});
+    </script>
+</body>
+</html>

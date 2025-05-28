@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - TreeTask</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/treetask.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 flex items-center justify-center min-h-screen" id="bodyRoot">
+    <div class="w-full max-w-md bg-white rounded-3xl shadow-xl p-10">
+        <div class="flex justify-center mb-8">
+            <img src="{{ url_for('static', filename='logo/task_tree.gif') }}" alt="TreeTask Logo" class="h-32 w-auto object-contain rounded-2xl shadow" style="image-rendering: auto;" />
+        </div>
+        <h2 class="text-3xl font-extrabold mb-8 text-center treetask-green-text">Register for TreeTask</h2>
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="mb-4 p-2 rounded-xl text-white {{ 'bg-red-500' if category == 'error' else 'treetask-green' }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        <form method="POST" novalidate>
+            {{ form.hidden_tag() }}
+            <div class="mb-6">
+                {{ form.username.label(class_="block text-gray-700 font-semibold mb-1") }}
+                {{ form.username(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green", value=form.username.data|e if form.username.data else '') }}
+                {% for error in form.username.errors %}
+                  <span class="text-red-500 text-sm">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-6 relative">
+                {{ form.password.label(class_="block text-gray-700 font-semibold mb-1") }}
+                <div class="relative">
+                    {{ form.password(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green pr-12", id="register_password") }}
+                    <button type="button" id="toggleRegisterPassword" tabindex="-1" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none">
+                        <svg id="registerEyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                <div class="text-xs text-gray-500 mt-1">
+                  Password must be at least 8 characters, include both a letter and a number, and may only use these special characters: <span class="font-mono">@ _ - .</span><br>
+                  <span class="text-gray-400">No other special characters are allowed.</span>
+                </div>
+                {% for error in form.password.errors %}
+                  <span class="text-red-500 text-sm">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <div class="mb-6 relative">
+                {{ form.confirm_password.label(class_="block text-gray-700 font-semibold mb-1") }}
+                <div class="relative">
+                    {{ form.confirm_password(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green pr-12", id="register_confirm_password") }}
+                    <button type="button" id="toggleRegisterConfirmPassword" tabindex="-1" class="absolute right-3 top-1/2 transform -translate-y-1/2 text-gray-400 hover:text-gray-700 focus:outline-none">
+                        <svg id="registerConfirmEyeIcon" xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15 12a3 3 0 11-6 0 3 3 0 016 0z" />
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268 2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
+                        </svg>
+                    </button>
+                </div>
+                {% for error in form.confirm_password.errors %}
+                  <span class="text-red-500 text-sm">{{ error }}</span>
+                {% endfor %}
+            </div>
+            <button type="submit" class="w-full treetask-green treetask-green-hover text-white font-bold py-3 px-4 rounded-2xl shadow transition">Register</button>
+        </form>
+        <div class="mt-6 text-center">
+            <a href="{{ url_for('auth.login') }}" class="treetask-green-text hover:underline font-semibold">Already have an account? Login</a>
+        </div>
+    </div>
+</body>
+</html>
+<script>
+// Show/hide password toggle for register
+const toggleRegisterPassword = document.getElementById('toggleRegisterPassword');
+const registerPasswordInput = document.getElementById('register_password');
+const registerEyeIcon = document.getElementById('registerEyeIcon');
+let registerPasswordVisible = false;
+toggleRegisterPassword.addEventListener('click', function() {
+    registerPasswordVisible = !registerPasswordVisible;
+    registerPasswordInput.type = registerPasswordVisible ? 'text' : 'password';
+    registerEyeIcon.innerHTML = registerPasswordVisible
+        ? `<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.362m3.087-2.7A9.956 9.956 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0z\" />\n           <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 3l18 18\" />`
+        : `<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\" />\n           <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268-2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\" />`;
+});
+// Show/hide password toggle for confirm password
+const toggleRegisterConfirmPassword = document.getElementById('toggleRegisterConfirmPassword');
+const registerConfirmPasswordInput = document.getElementById('register_confirm_password');
+const registerConfirmEyeIcon = document.getElementById('registerConfirmEyeIcon');
+let registerConfirmPasswordVisible = false;
+toggleRegisterConfirmPassword.addEventListener('click', function() {
+    registerConfirmPasswordVisible = !registerConfirmPasswordVisible;
+    registerConfirmPasswordInput.type = registerConfirmPasswordVisible ? 'text' : 'password';
+    registerConfirmEyeIcon.innerHTML = registerConfirmPasswordVisible
+        ? `<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M13.875 18.825A10.05 10.05 0 0112 19c-4.477 0-8.268-2.943-9.542-7a9.956 9.956 0 012.042-3.362m3.087-2.7A9.956 9.956 0 0112 5c4.477 0 8.268 2.943 9.542 7a9.956 9.956 0 01-4.043 5.197M15 12a3 3 0 11-6 0 3 3 0 016 0z\" />\n           <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M3 3l18 18\" />`
+        : `<path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M15 12a3 3 0 11-6 0 3 3 0 016 0z\" />\n           <path stroke-linecap=\"round\" stroke-linejoin=\"round\" stroke-width=\"2\" d=\"M2.458 12C3.732 7.943 7.523 5 12 5c4.477 0 8.268-2.943 9.542 7-1.274 4.057-5.065 7-9.542 7-4.477 0-8.268-2.943-9.542-7z\" />`;
+});
+</script>

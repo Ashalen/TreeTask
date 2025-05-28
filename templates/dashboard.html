@@ -1,0 +1,261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Dashboard - TreeTask</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link href="{{ url_for('static', filename='css/treetask.css') }}" rel="stylesheet">
+</head>
+<body class="bg-gray-100 min-h-screen" id="bodyRoot">
+    <nav class="bg-white shadow p-4 flex justify-between items-center rounded-b-2xl">
+        <span class="font-bold text-2xl treetask-green-text flex items-center gap-2">
+            <img src="{{ url_for('static', filename='logo/task_tree.gif') }}" alt="TreeTask Logo" class="h-10 w-auto object-contain rounded-lg" style="image-rendering: auto;" />
+            TreeTask
+        </span>
+        <div class="flex-1 flex justify-center">
+            <span class="text-lg font-semibold treetask-green-text">Hello, <span class="font-bold">{{ current_user.username }}</span>!</span>
+        </div>
+        <div class="flex items-center gap-2">
+            <button id="openSettingsSidebar" title="Settings" class="p-2 bg-transparent hover:bg-gray-200 rounded-full transition flex items-center justify-center">
+                <svg class="h-8 w-8 treetask-green-text" viewBox="0 0 24 24" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                  <path d="M19.43 12.98c.04-.32.07-.65.07-.98s-.03-.66-.07-.98l2.11-1.65a.5.5 0 00.12-.64l-2-3.46a.5.5 0 00-.6-.22l-2.49 1a7.03 7.03 0 00-1.7-.98l-.38-2.65A.488.488 0 0014 2h-4a.488.488 0 00-.5.42l-.38 2.65c-.63.24-1.21.56-1.77.94l-2.49-1a.5.5 0 00-.6.22l-2 3.46a.5.5 0 00.12.64l2.11 1.65c-.05.33-.08.66-.08 1s.03.67.08 1l-2.11 1.65a.5.5 0 00-.12.64l2 3.46c.14.24.44.33.68.22l2.49-1c.53.38 1.1.7 1.7.98l.38 2.65c.05.28.27.48.5.48h4c.23 0 .45-.2.5-.48l.38-2.65c.6-.28 1.17-.6 1.7-.98l2.49 1c.24.11.54.02.68-.22l2-3.46a.5.5 0 00-.12-.64l-2.11-1.65zM12 15.5A3.5 3.5 0 1 1 12 8.5a3.5 3.5 0 0 1 0 7z"/>
+                </svg>
+            </button>
+        </div>
+    </nav>
+    <!-- Settings Sidebar -->
+    <div id="settingsSidebar" class="fixed top-0 right-0 h-full w-80 max-w-full bg-white shadow-2xl z-50 transform translate-x-full transition-transform duration-300 flex flex-col" style="border-top-left-radius: 2rem; border-bottom-left-radius: 2rem;">
+        <div class="flex justify-between items-center p-6 border-b">
+            <span class="text-xl font-bold treetask-green-text">Settings</span>
+            <button id="closeSettingsSidebar" class="text-gray-400 hover:text-gray-700 text-2xl font-bold">&times;</button>
+        </div>
+        <div class="flex-1 flex flex-col justify-center items-center gap-6 p-8">
+            <a href="{{ url_for('auth.logout') }}" class="w-full text-center treetask-green treetask-green-hover text-white font-bold py-3 px-4 rounded-2xl shadow transition">Logout</a>
+            <form method="POST" action="{{ url_for('task.delete_account') }}" onsubmit="return confirm('Are you sure you want to delete your account? This action cannot be undone.');" class="w-full">
+                <button type="submit" class="w-full bg-red-500 hover:bg-red-600 text-white font-bold py-3 px-4 rounded-2xl shadow">Delete My Account</button>
+            </form>
+        </div>
+    </div>
+    <div id="sidebarOverlay" class="fixed inset-0 bg-black bg-opacity-30 z-40 hidden"></div>
+    <main class="max-w-3xl mx-auto mt-8">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            <div id="alert-container">
+              {% for category, message in messages %}
+                <div class="mb-4 p-2 rounded-xl text-white {{ 'bg-red-500' if category == 'error' else 'treetask-green' }} alert-flash">{{ message }}</div>
+              {% endfor %}
+            </div>
+          {% endif %}
+        {% endwith %}
+        <div class="mb-6">
+            <form method="GET" action="{{ url_for('task.dashboard') }}" class="flex gap-2">
+                <input type="text" name="q" placeholder="Search tasks..." value="{{ search_query }}" class="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green" />
+                <button type="submit" class="treetask-green treetask-green-hover text-white font-bold px-4 py-2 rounded-2xl shadow">Search</button>
+                {% if search_query %}
+                    <a href="{{ url_for('task.dashboard') }}" class="bg-gray-300 hover:bg-gray-400 text-gray-800 font-bold px-4 py-2 rounded-2xl shadow flex items-center justify-center self-stretch" style="align-self: stretch; display: flex; align-items: center;">Clear</a>
+                {% endif %}
+            </form>
+            {% if search_query %}
+                <p class="mt-2 text-gray-600">Showing results for: <span class="font-semibold treetask-green-text">{{ search_query }}</span></p>
+            {% endif %}
+        </div>
+        <div class="bg-white rounded-3xl shadow p-6 mb-8">
+            <button id="toggleAddTask" type="button" class="w-full flex justify-between items-center treetask-green/20 hover:treetask-green/30 text-treetask-green font-bold py-2 px-4 rounded-2xl mb-4 focus:outline-none">
+                <span>Add a New Task</span>
+                <svg id="toggleIcon" class="w-5 h-5 transition-transform" fill="none" stroke="currentColor" viewBox="0 0 24 24" xmlns="http://www.w3.org/2000/svg"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"></path></svg>
+            </button>
+            <div id="addTaskFormContainer" class="hidden">
+                <form method="POST" action="{{ url_for('task.dashboard') }}" novalidate>
+                    {{ form.hidden_tag() }}
+                    <div class="mb-4">
+                        {{ form.title.label(class_="block text-gray-700 font-semibold mb-1") }}
+                        {{ form.title(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green") }}
+                        {% for error in form.title.errors %}
+                          <span class="text-red-500 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4">
+                        {{ form.description.label(class_="block text-gray-700 font-semibold mb-1") }}
+                        {{ form.description(class_="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green") }}
+                        {% for error in form.description.errors %}
+                          <span class="text-red-500 text-sm">{{ error }}</span>
+                        {% endfor %}
+                    </div>
+                    <div class="mb-4 flex gap-4">
+                        <div class="flex-1">
+                            <label class="block text-gray-700 font-semibold mb-1" for="due_date_picker">Date</label>
+                            <button type="button" id="date_picker_btn" onclick="showDatePickerAtButton('due_date_picker', 'date_picker_btn')" class="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green bg-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" /></svg>
+                                <span class="text-gray-500">Pick a date</span>
+                            </button>
+                            {{ form.due_date(class_="hidden", id="due_date_picker", type="date") }}
+                            {% for error in form.due_date.errors %}
+                              <span class="text-red-500 text-sm">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                        <div class="flex-1">
+                            <label class="block text-gray-700 font-semibold mb-1" for="due_time_picker">Time</label>
+                            <button type="button" id="time_picker_btn" onclick="showDatePickerAtButton('due_time_picker', 'time_picker_btn')" class="w-full px-4 py-3 border treetask-green-border rounded-2xl focus:outline-none focus:ring-2 focus:ring-treetask-green bg-white flex items-center gap-2">
+                                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" /></svg>
+                                <span class="text-gray-500">Pick a time</span>
+                            </button>
+                            {{ form.due_time(class_="hidden", id="due_time_picker", type="time") }}
+                            {% for error in form.due_time.errors %}
+                              <span class="text-red-500 text-sm">{{ error }}</span>
+                            {% endfor %}
+                        </div>
+                    </div>
+                    <button type="submit" class="treetask-green treetask-green-hover text-white font-bold py-3 px-4 rounded-2xl shadow transition">Add Task</button>
+                </form>
+            </div>
+        </div>
+        <div class="bg-white rounded-3xl shadow p-6">
+            <h2 class="text-xl font-bold mb-4 treetask-green-text">Tasks</h2>
+            {% if tasks %}
+                <div style="max-height: 400px; overflow-y: auto;">
+                    <ul>
+                    {% for task in tasks %}
+                        <li class="mb-4 p-4 border rounded-2xl flex justify-between items-center gap-4">
+                            <div class="min-w-0 flex-1">
+                                <h3 class="font-semibold text-lg treetask-green-text truncate" title="{{ task.title|e }}">{{ task.title|e }}</h3>
+                                <p class="text-gray-600 truncate" title="{{ task.description|e }}">{{ task.description|e }}</p>
+                                {% if task.due_date %}
+                                  {% set is_overdue = (task.due_date and (task.due_date < now)) %}
+                                  <p class="text-xs font-semibold px-2 py-1 rounded-lg inline-block mt-2 mb-1 {% if is_overdue %}bg-red-100 text-red-600 border border-red-300{% else %}bg-treetask-green/10 text-treetask-green border border-treetask-green{% endif %}">
+                                    <span class="font-bold">Due:</span>
+                                    {% set dt = task.due_date.split('T') %}
+                                    {{ dt[0] }}{% if dt|length > 1 and dt[1] and dt[1] != '00:00:00' %} {{ dt[1][:5] }}{% endif %}
+                                    {% if is_overdue %}<span title="Overdue" class="ml-1">&#9888;</span>{% endif %}
+                                  </p>
+                                {% endif %}
+                                <p class="text-xs font-semibold px-2 py-1 rounded-lg mt-1 bg-gray-100 text-gray-600 border border-treetask-green">
+                                    <span class="font-bold">Created:</span> {{ task.creation_date[:16] }}
+                                </p>
+                            </div>
+                            <div class="flex flex-shrink-0 gap-2">
+                                <a href="{{ url_for('task.edit_task', task_id=task.id) }}" class="bg-white treetask-green-border border-2 treetask-green-text hover:bg-green-50 px-3 py-1 rounded-2xl font-semibold flex items-center gap-1" title="Edit Task">
+                                    <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536M9 13l6.586-6.586a2 2 0 112.828 2.828L11.828 15.828a2 2 0 01-2.828 0L9 13zm-6 6h12" /></svg>
+                                    <span class="sr-only">Edit</span>
+                                </a>
+                                <form method="POST" action="{{ url_for('task.delete_task', task_id=task.id) }}" onsubmit="return confirm('Delete this task?');">
+                                    {{ form.hidden_tag() }}
+                                    <button type="submit" class="bg-white border-2 border-red-400 text-red-500 hover:bg-red-50 px-3 py-1 rounded-2xl font-semibold flex items-center gap-1" title="Delete Task">
+                                        <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" /></svg>
+                                        <span class="sr-only">Delete</span>
+                                    </button>
+                                </form>
+                            </div>
+                        </li>
+                    {% endfor %}
+                    </ul>
+                </div>
+            {% else %}
+                <p class="text-gray-500">No tasks yet. Add one above!</p>
+            {% endif %}
+        </div>
+    </main>
+    <script>
+        const toggleBtn = document.getElementById('toggleAddTask');
+        const formContainer = document.getElementById('addTaskFormContainer');
+        const toggleIcon = document.getElementById('toggleIcon');
+        let expanded = false;
+        toggleBtn.addEventListener('click', () => {
+            expanded = !expanded;
+            formContainer.classList.toggle('hidden', !expanded);
+            toggleIcon.style.transform = expanded ? 'rotate(180deg)' : 'rotate(0deg)';
+        });
+        // Auto-dismiss alerts after 3 seconds
+        setTimeout(() => {
+          document.querySelectorAll('.alert-flash').forEach(el => {
+            el.style.transition = 'opacity 0.5s';
+            el.style.opacity = 0;
+            setTimeout(() => el.remove(), 500);
+          });
+        }, 3000);
+        // Settings sidebar logic
+        const openSidebarBtn = document.getElementById('openSettingsSidebar');
+        const closeSidebarBtn = document.getElementById('closeSettingsSidebar');
+        const sidebar = document.getElementById('settingsSidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        openSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.remove('translate-x-full');
+            overlay.classList.remove('hidden');
+        });
+        closeSidebarBtn.addEventListener('click', () => {
+            sidebar.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
+        });
+        overlay.addEventListener('click', () => {
+            sidebar.classList.add('translate-x-full');
+            overlay.classList.add('hidden');
+        });
+        // Custom date/time picker positioning
+        function showDatePickerAtButton(inputId, btnId) {
+            const input = document.getElementById(inputId);
+            const btn = document.getElementById(btnId);
+            if (!input || !btn) return;
+            const rect = btn.getBoundingClientRect();
+            input.style.position = 'absolute';
+            input.style.left = rect.left + 'px';
+            input.style.top = (rect.bottom + window.scrollY) + 'px';
+            input.style.zIndex = 9999;
+            input.classList.remove('hidden');
+            input.focus();
+            input.showPicker && input.showPicker();
+            // Hide again on blur
+            input.onblur = function() {
+                setTimeout(() => {
+                    input.classList.add('hidden');
+                    input.style.position = '';
+                    input.style.left = '';
+                    input.style.top = '';
+                    input.style.zIndex = '';
+                }, 150);
+            };
+            // For time picker: only set value when user clicks/minutes/AMPM, not just on first focus
+            if (input.type === 'time') {
+                // Remove any previous listeners
+                input.onchange = null;
+                input.addEventListener('change', timePickerChangeHandler);
+            } else {
+                input.onchange = function() {
+                    let value = input.value;
+                    let span = btn.querySelector('span');
+                    if (input.type === 'date' && value) {
+                        const d = new Date(value);
+                        span.textContent = d.toLocaleDateString();
+                    }
+                    input.classList.add('hidden');
+                    input.style.position = '';
+                    input.style.left = '';
+                    input.style.top = '';
+                    input.style.zIndex = '';
+                };
+            }
+            input.onkeydown = function(e) {
+                if (e.key === 'Enter') {
+                    e.preventDefault();
+                    input.blur();
+                }
+            };
+        }
+
+        // Custom handler for time picker to only set value on actual user selection
+        function timePickerChangeHandler(e) {
+            const input = e.target;
+            const btn = document.getElementById('time_picker_btn');
+            let value = input.value;
+            let span = btn.querySelector('span');
+            if (value) {
+                span.textContent = value;
+                input.classList.add('hidden');
+                input.style.position = '';
+                input.style.left = '';
+                input.style.top = '';
+                input.style.zIndex = '';
+            }
+        }
+    </script>
+</body>
+</html>

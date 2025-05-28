@@ -102,6 +102,15 @@ docker run -it --rm -p 5000:5000 \
 ### Stopping the app
 Just press `Ctrl+C` in the terminal running Docker.
 
+## Demo Login
+
+To try out the app quickly, use the following demo credentials:
+
+- **Username:** Demo
+- **Password:** Demo@12345
+
+You can also register your own account if you prefer.
+
 ## Screenshots
 
 Below are screenshots of TreeTask in action:

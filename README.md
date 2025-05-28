@@ -18,7 +18,7 @@ TreeTask is a Flask-based personal task management system that allows users to s
 /TreeTask
 ├── /templates         # HTML templates (Jinja2)
 ├── /static
-│   └── /css           # Tailwind CSS output (or CDN used in templates)
+│   └── /css           # Tailwind CSS output (CDN also used in templates)
 ├── /controllers       # Flask routes and business logic
 ├── /models            # Database interactions (using sqlite3)
 ├── config.py          # Application configuration
@@ -39,6 +39,13 @@ TreeTask is a Flask-based personal task management system that allows users to s
    ```
 4. **Access the app:**
    Open your browser and go to `http://127.0.0.1:5000`
+
+## Demo Login
+
+To try out the app quickly, use the following demo credentials:
+
+- **Username:** Demo
+- **Password:** Demo@12345
 
 ## Database File
 - The `treetask.db` file is a binary SQLite database. It is not human-readable in a text editor. This is normal and secure.

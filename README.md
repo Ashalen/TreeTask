@@ -1,6 +1,3 @@
-<<<<<<< HEAD
-# TreeTask
-=======
 # TreeTask
 
 TreeTask is a Flask-based personal task management system that allows users to securely manage their tasks. The application follows the MVC (Model-View-Controller) architecture and uses SQLite for data storage.
@@ -115,4 +112,3 @@ Below are screenshots of TreeTask in action:
 
 ---
 For more details, see the code comments and documentation in each file.
->>>>>>> 242e61e (Initial commit: TreeTask Flask app with Docker, REST API, and screenshots)

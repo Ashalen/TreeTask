@@ -47,5 +47,6 @@ def create_default_demo_user():
 os.makedirs(os.path.join(app.instance_path), exist_ok=True)
 
 if __name__ == '__main__':
-    create_default_demo_user()
+    with app.app_context():
+        create_default_demo_user()
     app.run(debug=True)

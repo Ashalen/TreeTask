@@ -29,6 +29,10 @@ TreeTask is a Flask-based personal task management system that allows users to s
 
 ## Setup Instructions
 1. **Clone the repository**
+   ```bash
+   git clone https://github.com/Ashalen/TreeTask.git
+   cd TreeTask
+   ```
 2. **Install dependencies:**
    ```bash
    pip install -r requirements.txt
